@@ -1,14 +1,22 @@
 ---
 - name: "Apache installation using docker"
   hosts: prod
+  vars_files: 
+    - files/secrets/credentials.yaml
   become : true
   
   pre_tasks: 
-    - name: install EPEL repo
+    - name: install EPEL repo, git and wget
       package: 
-        name: epel-release
+        name: '{{item}}'
         state: present
       when: ansible_distribution=="CentOS"
+      loop:
+        - epel-release
+        - git
+        - wget
+
+
     - name: install python-pip
       yum: 
         name: python-pip 
@@ -17,26 +25,20 @@
     - name : Install docker python 
       pip: 
         name: docker-py
-    - name : install git 
-      pip:
-        name: '{{item}}'
-        state: present
-      when: ansible_distribution== "CentOS"
-      loop:
-        - gitpython 
-        - wget
-
+    
   tasks:
    - name : generate html
      template:
-       src: "index.html"
+       src: "index.html.j2"
        dest: /home/vagrant/index.html
-    
+ 
    - name: Create Apache container
      docker_container:
        name: webapp
        image: httpd
        ports:
          - "80:80"
+       recreate: yes
        volumes:
          - /home/vagrant/index.html:/usr/local/apache2/htdocs/index.html
+       
