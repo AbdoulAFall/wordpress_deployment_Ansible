@@ -3,7 +3,6 @@
   become: true
   vars: 
     system_user: vagrant
-    compose_binary_dir: /usr/local/bin
   vars_files:
     - files/secrets/credentials.yml
   pre_tasks: 
